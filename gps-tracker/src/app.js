@@ -7,9 +7,9 @@ import './style.css';
 import { firebaseConfig, i18n, appVersion } from './config.js';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, onValue, set, get } from "firebase/database";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
-import { initializeDataService, loadHistoryData, loadFallData, exportHistoryToExcel, exportFailsToExcel } from './dataService.js';
+import { initializeDataService, loadFallData, exportFailsToExcel } from './dataService.js';
 
 const getEl = id => document.getElementById(id);
 
@@ -108,62 +108,41 @@ let offlineTimer;
 let isFalling = false;
 let currentSpeedVal = 0;
 
+// Auth guard: redirect to login if not authenticated
 onAuthStateChanged(auth, (user) => {
-    const loginOverlay = getEl('login-overlay');
     const welcomeEl = getEl('welcome-text');
     if (user) {
-        if (loginOverlay) loginOverlay.style.display = 'none';
         const prefix = currentLang === 'vi' ? "Xin chào, " : "Hello, ";
         if (welcomeEl) welcomeEl.innerText = prefix + getFormattedName(user) + "!";
         if (map) setTimeout(() => map.invalidateSize(), 400);
         requestWakeLock();
+        setupFCM();
     } else {
-        if (loginOverlay) { loginOverlay.style.display = 'flex'; loginOverlay.style.opacity = '1'; }
-        if (welcomeEl) welcomeEl.innerText = '';
-        if (wakeLock !== null) { wakeLock.release(); wakeLock = null; }
+        // Not logged in → redirect to login page
+        window.location.href = '/login.html';
     }
 });
 
-const loginBtn = getEl('login-btn');
-if (loginBtn) {
-    loginBtn.onclick = async () => {
-        let email = (getEl('username') && getEl('username').value.trim()) || '';
-        const pass = (getEl('password') && getEl('password').value.trim()) || '';
-        const err = getEl('login-error');
-        if (email && !email.includes('@')) email += '@gps.com';
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-            setupFCM(); requestWakeLock();
-            if (getEl('login-overlay')) setTimeout(() => { getEl('login-overlay').style.display = 'none'; }, 500);
-            if (err) err.style.display = 'none';
-        } catch (error) {
-            console.error("Login error:", error.code, error.message);
-            if (err) {
-                err.innerText = currentLang === 'vi' ? `Đăng nhập với email "${email}" không thành công. Vui lòng kiểm tra lại.` : `Login failed for "${email}". Please check your credentials.`;
-                err.style.display = 'block'; err.style.animation = 'none';
-                setTimeout(() => err.style.animation = 'shake 0.4s', 10);
-            }
-        }
-    }
-}
-
-const pwd = getEl('password'); if (pwd) pwd.addEventListener('keypress', function (e) { if (e.key === 'Enter' && getEl('login-btn')) getEl('login-btn').click(); });
-
+// Logout handler
 const logoutBtn = getEl('logout-btn');
 if (logoutBtn) {
     logoutBtn.onclick = async () => {
-        try { await signOut(auth); } catch (error) { console.error("Logout error:", error); }
-        if (getEl('username')) getEl('username').value = '';
-        if (getEl('password')) getEl('password').value = '';
-        if (getEl('login-error')) getEl('login-error').style.display = 'none';
+        try {
+            await signOut(auth);
+            window.location.href = '/login.html';
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
     }
 }
 
 function updateUI() {
     document.querySelectorAll('[data-key]').forEach(el => {
         const key = el.getAttribute('data-key');
-        if (el.tagName === 'OPTION') el.text = i18n[currentLang][key];
-        else el.innerHTML = i18n[currentLang][key];
+        if (i18n[currentLang][key]) {
+            if (el.tagName === 'OPTION') el.text = i18n[currentLang][key];
+            else el.innerHTML = i18n[currentLang][key];
+        }
     });
     const langToggle = getEl('lang-toggle'); if (langToggle) langToggle.innerText = currentLang === 'vi' ? 'EN' : 'VI';
     const user = auth.currentUser;
@@ -178,15 +157,11 @@ function updateUI() {
 let infoModal = getEl('info-modal'); if (getEl('open-info')) getEl('open-info').onclick = () => { if (infoModal) infoModal.style.display = 'flex'; };
 if (getEl('close-info')) getEl('close-info').onclick = () => { if (infoModal) infoModal.style.display = 'none'; };
 
-let histModal = getEl('history-modal'); if (getEl('history-btn')) getEl('history-btn').onclick = () => { if (histModal) { histModal.style.display = 'flex'; loadHistoryData(); } };
-if (getEl('close-history')) getEl('close-history').onclick = () => { if (histModal) histModal.style.display = 'none'; };
-
 let fallModal = getEl('fall-modal'); if (getEl('fall-btn')) getEl('fall-btn').onclick = () => { if (fallModal) { fallModal.style.display = 'flex'; loadFallData(); } };
 if (getEl('close-fall')) getEl('close-fall').onclick = () => { if (fallModal) fallModal.style.display = 'none'; };
 
 window.onclick = (e) => {
     if (infoModal && e.target == infoModal) infoModal.style.display = 'none';
-    if (histModal && e.target == histModal) histModal.style.display = 'none';
     if (fallModal && e.target == fallModal) fallModal.style.display = 'none';
 }
 
@@ -194,7 +169,7 @@ window.onclick = (e) => {
 if (getEl('map')) {
     map = L.map('map').setView([10.762622, 106.660172], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    marker = L.marker(esp32Pos, { icon: L.divIcon({ html: `<div style="background:#0a84ff; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`, className: '', iconSize:[20,20] }) }).addTo(map);
+    marker = L.marker(esp32Pos, { icon: L.divIcon({ html: `<div style="background:var(--primary, #71A5DE); width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>`, className: '', iconSize:[20,20] }) }).addTo(map);
 }
 
 function startNavigation() {
@@ -203,8 +178,8 @@ function startNavigation() {
         if (routingControl) map.removeControl(routingControl);
         const modeEl = getEl('travel-mode'); if (!modeEl) return;
         const mode = modeEl.value;
-        let routeColor = '#0a84ff';
-        if (mode === 'driving') routeColor = '#ff453a'; else if (mode === 'cycling') routeColor = '#0a84ff'; else if (mode === 'walking') routeColor = '#32d74b';
+        let routeColor = '#71A5DE';
+        if (mode === 'driving') routeColor = '#E05252'; else if (mode === 'cycling') routeColor = '#71A5DE'; else if (mode === 'walking') routeColor = '#4CAF7D';
 
         routingControl = L.Routing.control({
             waypoints: [L.latLng(pos.coords.latitude, pos.coords.longitude), L.latLng(esp32Pos[0], esp32Pos[1])],
@@ -247,7 +222,7 @@ function startNavigation() {
 
 if (getEl('find-way')) getEl('find-way').onclick = startNavigation;
 if (getEl('lang-toggle')) getEl('lang-toggle').onclick = () => { currentLang = currentLang === 'vi' ? 'en' : 'vi'; updateUI(); };
-if (getEl('theme-toggle')) getEl('theme-toggle').onclick = () => { document.body.classList.toggle('light-mode'); if (getEl('theme-toggle')) getEl('theme-toggle').innerText = document.body.classList.contains('light-mode') ? '☀️' : '🌙'; };
+if (getEl('theme-toggle')) getEl('theme-toggle').onclick = () => { document.body.classList.toggle('dark-mode'); if (getEl('theme-toggle')) getEl('theme-toggle').innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙'; };
 if (getEl('buzzer-btn')) getEl('buzzer-btn').onclick = () => { set(ref(db, 'tracker/action/ring'), true); alert(currentLang === 'vi' ? "Đã gửi tín hiệu bật còi tìm phương tiện!" : "Sent buzzer trigger to vehicle!"); };
 
 let lastLat = null, lastLng = null; let stayStartTime = null;
@@ -309,7 +284,6 @@ setInterval(() => {
     }
 }, 30000);
 
-if (getEl('export-excel-btn')) getEl('export-excel-btn').onclick = exportHistoryToExcel;
 const exportFallBtn = getEl('export-fall-excel-btn'); if (exportFallBtn) exportFallBtn.onclick = exportFailsToExcel;
 
 // Hiển thị phiên bản ứng dụng lên giao diện

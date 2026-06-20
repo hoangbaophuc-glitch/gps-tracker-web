@@ -3,15 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tổng quan đề tài</title>
-  <link rel="stylesheet" href="src/style.css">
+  <meta name="description" content="Tổng quan đề tài GPS Tracker Pro - Nhóm 7 HCMUTE">
+  <title>Tổng quan đề tài - GPS TRACKER PRO</title>
+  <link rel="icon" href="/public/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/style.css">
 </head>
 <body class="overview-page">
 
+  <nav class="nav-bar">
+    <a href="/dashboard.html" class="nav-brand">GPS TRACKER</a>
+    <div class="nav-links">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/history.html">Lịch sử</a>
+      <a href="/overview.html" class="active">Tổng quan</a>
+      <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:18px;">🌙</button>
+    </div>
+  </nav>
+
   <header class="overview-header">
     <div class="logo-container">
-      <img src="picture/logo-ute.png" alt="Logo Trường" class="logo-circle">
-      <img src="picture/logo-khoa.png" alt="Logo Khoa" class="logo-circle">
+      <img src="/picture/logo-ute.png" alt="Logo Trường" class="logo-circle">
+      <img src="/picture/logo-khoa.png" alt="Logo Khoa" class="logo-circle">
     </div>
     
     <div class="title-container">
@@ -48,22 +60,32 @@
     </div>
 
     <div class="content-box box-2">
-      <img src="picture/gps-tracker.jpg" alt=" Giao diện GPS Tracker" class="preview-image">
+      <img src="/picture/gps-tracker.jpg" alt="Giao diện GPS Tracker" class="preview-image">
       
       <div class="hover-overlay">
-        <a href="index.html" class="view-detail-btn">Xem chi tiết</a>
+        <a href="/dashboard.html" class="view-detail-btn">Xem Dashboard</a>
       </div>
     </div>
 
     <div class="content-box box-3">
-      <img src="hardware-preview.jpg" alt="Mạch thực tế" class="preview-image">
+      <img src="/picture/gps-tracker.jpg" alt="Mạch thực tế" class="preview-image">
   
       <div class="hover-overlay">
-        <a href="index.html" class="view-detail-btn">Xem chi tiết</a>
+        <a href="/history.html" class="view-detail-btn">Xem lịch sử</a>
       </div>
     </div>
 
   </main>
 
+  <script>
+    // Theme toggle for overview page
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      themeToggle.onclick = () => {
+        document.body.classList.toggle('dark-mode');
+        themeToggle.innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+      };
+    }
+  </script>
 </body>
 </html>

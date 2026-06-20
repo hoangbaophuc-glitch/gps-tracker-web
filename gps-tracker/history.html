@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Lịch sử dữ liệu hệ thống GPS Tracker Pro">
+  <title>Lịch sử hệ thống - GPS TRACKER PRO</title>
+  <link rel="icon" href="/public/favicon.svg" type="image/svg+xml">
+</head>
+<body class="history-page">
+
+  <nav class="nav-bar">
+    <a href="/dashboard.html" class="nav-brand">GPS TRACKER</a>
+    <div class="nav-links">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/history.html" class="active">Lịch sử</a>
+      <a href="/overview.html">Tổng quan</a>
+      <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:18px;">🌙</button>
+    </div>
+  </nav>
+
+  <div style="padding: 20px;">
+    <div class="history-header">
+      <h1>📊 DỮ LIỆU LỊCH SỬ HỆ THỐNG</h1>
+      <a href="/dashboard.html" class="back-btn" id="back-btn">⬅ Quay lại Dashboard</a>
+    </div>
+
+    <div class="history-container">
+
+      <!-- Biểu đồ đường -->
+      <div class="history-section">
+        <h2 style="color: var(--primary);">📈 Biểu đồ biến thiên vận tốc</h2>
+        <div class="chart-container">
+          <canvas id="speedChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Bảng lộ trình -->
+      <div class="history-section">
+        <h2 style="color: var(--primary);">📍 Lịch sử di chuyển</h2>
+        <div class="table-container" style="max-height: 400px;">
+          <table id="history-table">
+            <thead>
+              <tr>
+                <th>Thời gian</th>
+                <th>Vĩ độ (Lat)</th>
+                <th>Kinh độ (Lng)</th>
+                <th>Vận tốc (km/h)</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-excel" id="export-excel-btn">📥 Tải file Excel Lộ trình</button>
+        </div>
+      </div>
+
+      <!-- Bảng sự cố té ngã -->
+      <div class="history-section">
+        <h2 style="color: var(--danger);">⚠️ Lịch sử sự cố (Té ngã)</h2>
+        <div class="table-container" style="max-height: 400px;">
+          <table id="fall-table">
+            <thead>
+              <tr>
+                <th>Thời gian</th>
+                <th>Vĩ độ (Lat)</th>
+                <th>Kinh độ (Lng)</th>
+              </tr>
+            </thead>
+            <tbody id="fall-body"></tbody>
+          </table>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-excel" id="export-fall-excel-btn" style="background-color: var(--warning);">📥 Tải file Excel Té ngã</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module" src="/src/history.js"></script>
+</body>
+</html>
