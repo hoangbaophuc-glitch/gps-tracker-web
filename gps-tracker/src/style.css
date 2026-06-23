@@ -58,6 +58,13 @@ body {
   transition: all 0.2s ease;
 }
 
+body.dashboard-body {
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 
 /* --------------------------------------------------------------------------
    2. LOGIN PAGE (Portal Style)
