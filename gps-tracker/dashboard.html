@@ -16,6 +16,10 @@
       <div id="connection-dot" class="status-dot"></div>
       <div class="brand-text">GPS TRACKER</div>
       <div id="welcome-text" style="font-size: 12px; color: var(--primary); margin-left: 10px; font-weight: bold;"></div>
+      <div class="tab-container-header" style="display: flex; gap: 8px; margin-left: 20px;">
+        <button id="tab-map-btn" class="tab-btn active" data-key="tab_map">🗺️ Bản đồ</button>
+        <button id="tab-3d-btn" class="tab-btn" data-key="tab_3d">🏍️ Mô hình 3D</button>
+      </div>
     </div>
 
     <div class="header-right">
@@ -55,6 +59,49 @@
   </div>
 
   <div id="map"></div>
+  
+  <div id="dashboard-3d" class="hidden">
+    <div class="dashboard-3d-layout">
+      <!-- 3D Canvas Area -->
+      <div class="canvas-3d-wrapper">
+        <canvas id="canvas-3d"></canvas>
+        <div class="hover-tip-3d" id="hover-tip-3d">
+          <span id="hover-tip-text" data-key="panel_3d_instr_1">👉 Nhấp chuột trái & kéo để xoay xe</span>
+        </div>
+      </div>
+      
+      <!-- Side telemetry panel -->
+      <div class="panel-3d">
+        <h2 data-key="panel_3d_title">HỆ THỐNG GIÁM SÁT 3D</h2>
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <span class="telemetry-label" data-key="panel_3d_angle">Góc nghiêng</span>
+            <span class="telemetry-val" id="telemetry-angle">0.0°</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label" data-key="panel_3d_trunk">Trạng thái cốp</span>
+            <span class="telemetry-val" id="telemetry-trunk" data-key="panel_3d_trunk_close" style="color: var(--warning); font-weight: bold;">Đóng</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label" data-key="st_label">Trạng thái</span>
+            <span class="telemetry-val" id="telemetry-status" data-key="st_ok">Cân bằng</span>
+          </div>
+        </div>
+        
+        <div class="instruction-box">
+          <h3 data-key="panel_3d_instruction">Hướng dẫn tương tác</h3>
+          <ul>
+            <li data-key="panel_3d_instr_1">👉 Nhấp chuột trái & kéo để xoay xe</li>
+            <li data-key="panel_3d_instr_2">👉 Nhấp chuột phải & kéo để dịch chuyển</li>
+            <li data-key="panel_3d_instr_3">👉 Cuộn chuột để phóng to / thu nhỏ</li>
+            <li data-key="panel_3d_instr_4" style="color: var(--warning); font-weight: bold;">👉 Nhấp vào Cốp Xe để MỞ/ĐÓNG cốp</li>
+            <li data-key="panel_3d_instr_5" style="color: var(--primary); font-weight: bold;">👉 Nhấp vào hộp thiết bị IoT màu xanh trong cốp để xem Sơ đồ mạch</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  
   <div class="info-btn" id="open-info">i</div>
 
   <div class="modal" id="info-modal">
@@ -92,6 +139,135 @@
       <div style="display: flex; gap: 10px; justify-content: center;">
         <button class="btn-excel" id="export-fall-excel-btn" data-key="btn_export">Tải file Excel</button>
         <button class="close-modal btn-grey" id="close-fall" data-key="btn_close">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+    </div>
+  </div>
+
+  <!-- Modal Sơ đồ mạch điện tương tác -->
+  <div class="modal" id="circuit-modal">
+    <div class="modal-content wide circuit-modal-content">
+      <h2 data-key="circuit_title">SƠ ĐỒ NGUYÊN LÝ MẠCH GPS TRACKER ESP32</h2>
+      
+      <div class="circuit-container">
+        <!-- SVG Interactive Schematic -->
+        <div class="circuit-svg-wrapper">
+          <svg viewBox="0 0 800 500" class="circuit-svg" id="circuit-svg">
+            <!-- Background Grid lines for aesthetic -->
+            <defs>
+              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(15, 23, 42, 0.05)" stroke-width="1"/>
+              </pattern>
+              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="5" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+            
+            <!-- Wire Connections (Traces) -->
+            <g id="circuit-traces" stroke="rgba(79, 131, 188, 0.4)" stroke-width="3" fill="none" stroke-linejoin="round">
+              <!-- VCC Bus (Red) connects ESP32 3.3V to MPU6050 VCC -->
+              <path class="trace-vcc" d="M 285 140 L 240 140 L 240 60 L 560 60 L 560 200 L 585 200" stroke="rgba(224, 82, 82, 0.4)" />
+              
+              <!-- GND Bus (Blue/Grey) connects ESP32 GND, MPU6050 GND, and Buzzer Negative -->
+              <path class="trace-gnd" d="M 285 160 L 220 160 L 220 80 L 550 80 L 550 220 L 585 220 M 220 160 L 220 270 L 175 270" stroke="rgba(107, 123, 141, 0.4)" />
+              
+              <!-- MPU6050 SDA to ESP32 GPIO 21 (Yellow) -->
+              <path class="trace-mpu-sda" d="M 515 220 L 535 220 L 535 290 L 585 290" stroke="rgba(229, 168, 75, 0.4)" />
+              
+              <!-- MPU6050 SCL to ESP32 GPIO 22 (Yellow) -->
+              <path class="trace-mpu-scl" d="M 515 180 L 545 180 L 545 265 L 585 265" stroke="rgba(229, 168, 75, 0.4)" />
+              
+              <!-- Buzzer Positive to ESP32 GPIO 18 (Orange) -->
+              <path class="trace-buzzer" d="M 285 240 L 175 240" stroke="rgba(229, 168, 75, 0.4)" />
+            </g>
+
+            <!-- ESP32 NodeMCU DevKit -->
+            <g class="component-group" id="comp-esp32" cursor="pointer">
+              <rect x="280" y="100" width="240" height="300" rx="10" fill="#1A2030" stroke="#5B8FC8" stroke-width="3" filter="url(#glow)" />
+              <!-- USB Port -->
+              <rect x="375" y="85" width="50" height="15" fill="#3a3a3c" />
+              <!-- ESP-WROOM-32 Chip Module -->
+              <rect x="340" y="150" width="120" height="130" rx="5" fill="#222938" stroke="#2E3648" />
+              <rect x="360" y="165" width="80" height="80" rx="3" fill="#121620" stroke="#7A8A9E" />
+              <text x="400" y="210" fill="#fff" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">ESP32-WROOM</text>
+              
+              <!-- Left side pins -->
+              <g fill="#E5A84B">
+                <!-- 3.3V -->
+                <circle cx="285" cy="140" r="4" />
+                <text x="295" y="144" fill="#8e8e93" font-size="10" font-family="sans-serif">3.3V</text>
+                <!-- GND -->
+                <circle cx="285" cy="160" r="4" />
+                <text x="295" y="164" fill="#8e8e93" font-size="10" font-family="sans-serif">GND</text>
+                <!-- GPIO 18 -->
+                <circle cx="285" cy="240" r="4" />
+                <text x="295" y="244" fill="#8e8e93" font-size="10" font-family="sans-serif">G18 (PWM)</text>
+              </g>
+              
+              <!-- Right side pins -->
+              <g fill="#E5A84B">
+                <!-- GPIO 22 -->
+                <circle cx="515" cy="180" r="4" />
+                <text x="505" y="184" fill="#8e8e93" font-size="10" font-family="sans-serif" text-anchor="end">G22 (SCL)</text>
+                <!-- GPIO 21 -->
+                <circle cx="515" cy="220" r="4" />
+                <text x="505" y="224" fill="#8e8e93" font-size="10" font-family="sans-serif" text-anchor="end">G21 (SDA)</text>
+              </g>
+              
+              <text x="400" y="360" fill="#5B8FC8" font-size="16" font-family="sans-serif" text-anchor="middle" font-weight="bold">ESP32 NodeMCU</text>
+            </g>
+
+            <!-- MPU6050 Accel/Gyro Module -->
+            <g class="component-group" id="comp-mpu" cursor="pointer">
+              <rect x="580" y="150" width="140" height="190" rx="8" fill="#1A2030" stroke="#E5A84B" stroke-width="2" />
+              <!-- Sensor Chip -->
+              <rect x="630" y="200" width="40" height="40" rx="2" fill="#121620" stroke="#2E3648" />
+              <text x="650" y="225" fill="#fff" font-size="9" font-family="sans-serif" text-anchor="middle">MPU6050</text>
+              <!-- LDO Regulator -->
+              <rect x="680" y="170" width="15" height="15" fill="#3a3a3c" />
+              <!-- Status LED -->
+              <circle id="mpu-led" cx="595" cy="165" r="4" fill="#4CAF7D" />
+              
+              <!-- Pins labels -->
+              <g fill="#E5A84B" font-size="9" font-family="sans-serif">
+                <circle cx="585" cy="200" r="3" /><text x="595" y="203" fill="#8e8e93">VCC</text>
+                <circle cx="585" cy="220" r="3" /><text x="595" y="223" fill="#8e8e93">GND</text>
+                <circle cx="585" cy="265" r="3" /><text x="595" y="268" fill="#8e8e93">SCL</text>
+                <circle cx="585" cy="290" r="3" /><text x="595" y="293" fill="#8e8e93">SDA</text>
+              </g>
+              <text x="650" y="315" fill="#E5A84B" font-size="12" font-family="sans-serif" text-anchor="middle" font-weight="bold">MPU6050 IMU</text>
+            </g>
+
+            <!-- Active Buzzer -->
+            <g class="component-group" id="comp-buzzer" cursor="pointer">
+              <rect x="80" y="180" width="120" height="140" rx="10" fill="#1A2030" stroke="#E5A84B" stroke-width="2" />
+              <circle cx="140" cy="240" r="30" fill="#121620" stroke="#222938" />
+              <circle cx="140" cy="240" r="8" fill="#000" />
+              <path id="buzzer-wave-1" class="buzzer-wave" d="M 85 240 A 55 55 0 0 1 195 240" fill="none" stroke="#E5A84B" stroke-width="2" opacity="0" />
+              <path id="buzzer-wave-2" class="buzzer-wave" d="M 70 240 A 70 70 0 0 1 210 240" fill="none" stroke="#E5A84B" stroke-width="2" opacity="0" />
+              
+              <!-- Pins -->
+              <g fill="#E5A84B" font-size="9" font-family="sans-serif" text-anchor="end">
+                <circle cx="175" cy="240" r="3" /><text x="165" y="243" fill="#8e8e93">Dương (+)</text>
+                <circle cx="175" cy="270" r="3" /><text x="165" y="273" fill="#8e8e93">Âm (-)</text>
+              </g>
+              <text x="140" y="305" fill="#E5A84B" font-size="12" font-family="sans-serif" text-anchor="middle" font-weight="bold">BUZZER</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="circuit-detail-panel">
+          <h3 id="circuit-comp-name" style="color: var(--primary); margin-top: 0;">Chọn linh kiện</h3>
+          <p id="circuit-comp-desc" style="line-height: 1.5; color: var(--text-muted);">Di chuột lên linh kiện trên sơ đồ để xem vai trò và thông tin kết nối chi tiết.</p>
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin-top: 20px;">
+        <button class="close-modal btn-grey" id="close-circuit" data-key="btn_close">Đóng</button>
       </div>
     </div>
   </div>

@@ -1006,3 +1006,358 @@ body.dark-mode .hover-overlay {
     box-shadow: inset 0 0 80px rgba(224, 82, 82, 0.4);
   }
 }
+
+/* --- 3D VEHICLE DASHBOARD & INTERACTIVE CIRCUIT SCHEMATIC --- */
+
+/* Tab Buttons */
+.tab-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--card-border);
+    color: var(--text-muted);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+    transform: translateY(-1px);
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(113, 165, 222, 0.4);
+}
+
+/* 3D Dashboard Layout */
+#dashboard-3d {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: var(--bg-color);
+}
+
+.dashboard-3d-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+}
+
+@media (max-width: 900px) {
+    .dashboard-3d-layout {
+        flex-direction: column;
+    }
+    .panel-3d {
+        width: 100% !important;
+        height: auto !important;
+        border-left: none !important;
+        border-top: 1px solid var(--card-border);
+    }
+}
+
+.canvas-3d-wrapper {
+    flex: 1;
+    position: relative;
+    height: 100%;
+    min-height: 350px;
+    overflow: hidden;
+}
+
+#canvas-3d {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.hover-tip-3d {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
+    pointer-events: none;
+    backdrop-filter: blur(5px);
+    transition: opacity 0.5s ease;
+    animation: pulseTip 2s infinite alternate;
+}
+
+@keyframes pulseTip {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+}
+
+.hover-tip-3d span {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.panel-3d {
+    width: 350px;
+    background: var(--panel-bg);
+    border-left: 1px solid var(--card-border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    backdrop-filter: blur(15px);
+    box-shadow: -5px 0 20px rgba(0,0,0,0.3);
+    overflow-y: auto;
+    z-index: 5;
+    box-sizing: border-box;
+}
+
+.panel-3d h2 {
+    font-size: 16px;
+    font-weight: 900;
+    margin: 0;
+    color: var(--text-main);
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--card-border);
+    padding-bottom: 10px;
+}
+
+.telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.telemetry-item {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.telemetry-item:hover {
+    transform: translateY(-2px);
+    border-color: rgba(113, 165, 222, 0.4);
+}
+
+.telemetry-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.telemetry-val {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.instruction-box {
+    background: rgba(113, 165, 222, 0.05);
+    border: 1px dashed rgba(113, 165, 222, 0.3);
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.instruction-box h3 {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.instruction-box ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.instruction-box li {
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--text-muted);
+}
+
+/* Modal schematic additions */
+.circuit-modal-content {
+    max-width: 850px !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.circuit-modal-content h2 {
+    color: #0f172a !important;
+}
+
+.circuit-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 15px;
+}
+
+@media (max-width: 850px) {
+    .circuit-container {
+        flex-direction: column;
+    }
+    .circuit-detail-panel {
+        width: 100% !important;
+    }
+}
+
+.circuit-svg-wrapper {
+    flex: 2;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.circuit-svg {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+}
+
+.circuit-detail-panel {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    height: 320px;
+    min-height: 320px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+/* Schematic Hover Interactions */
+.component-group {
+    transition: all 0.3s ease;
+}
+
+.component-group rect, .component-group circle {
+    transition: stroke 0.3s ease, stroke-width 0.3s ease;
+}
+
+.component-group:hover rect, .component-group.selected rect {
+    stroke-width: 3px !important;
+    stroke: #E5A84B !important;
+}
+
+.component-group:hover text, .component-group.selected text {
+    fill: #E5A84B !important;
+}
+
+/* Highlighting wire connections */
+#circuit-traces path {
+    transition: stroke 0.3s ease, stroke-width 0.3s ease, opacity 0.3s ease;
+}
+
+#circuit-traces path.highlight {
+    stroke-width: 5px !important;
+    opacity: 1 !important;
+}
+
+.highlight-vcc { stroke: #E05252 !important; filter: drop-shadow(0 0 3px #E05252); }
+.highlight-gnd { stroke: #6B7B8D !important; filter: drop-shadow(0 0 3px #6B7B8D); }
+.highlight-gps-tx, .highlight-gps-rx { stroke: #4CAF7D !important; filter: drop-shadow(0 0 3px #4CAF7D); }
+.highlight-mpu-sda, .highlight-mpu-scl { stroke: #E5A84B !important; filter: drop-shadow(0 0 3px #E5A84B); }
+.highlight-buzzer { stroke: #E5A84B !important; filter: drop-shadow(0 0 3px #E5A84B); }
+
+/* Blinking LEDs on PCB */
+@keyframes blinkLed {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; filter: drop-shadow(0 0 4px currentColor); }
+}
+
+#gps-led.active {
+    animation: blinkLed 1s infinite;
+    fill: #4CAF7D !important;
+}
+
+#mpu-led.active {
+    animation: blinkLed 0.5s infinite;
+    fill: #4CAF7D !important;
+}
+
+/* Buzzer sound waves animation */
+@keyframes buzzerSound {
+    0% { opacity: 0; transform: scale(0.9); }
+    50% { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.1); }
+}
+
+.buzzer-wave.active {
+    animation: buzzerSound 1s infinite;
+    transform-origin: 140px 300px;
+    opacity: 1 !important;
+}
+
+/* General hidden utility */
+.hidden {
+    display: none !important;
+}
+
+.font-warning {
+    color: var(--warning) !important;
+}
+
+.font-success {
+    color: var(--success) !important;
+}
+
+/* Fix light text contrast in schematic modal */
+.circuit-detail-panel {
+    color: #334155 !important;
+}
+
+.circuit-detail-panel h3 {
+    color: #0284c7 !important; /* Sky blue header */
+}
+
+.circuit-detail-panel p {
+    color: #475569 !important; /* Dimmed readable text */
+}
+
+.telemetry-sub-panel {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+.telemetry-sub-panel strong {
+    color: #475569 !important; /* Readable label */
+}
+
